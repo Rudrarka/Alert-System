@@ -13,19 +13,23 @@ Refer to https://docs.docker.com/get-docker/ to install docker
 
 * Clone the project into local
     ```bash
-    git clone https://github.com/Rudrarka/planning-poker-server.git
+    git clone https://github.com/Rudrarka/Alert-System.git
     ```
 
 * Run the following commands to build and run the application:
     ```bash
-    cd planning-poker-server
+    cd Alert-System
     docker-compose up -d --build
     ```
 
 
 Alert service Runs on **localhost:5000**
 
+Swagger : **localhost:5000/swagger**
+
 # High Level Design and Docker Compose Components
+
+![Design diagram](system_design.png)
 
 The alert service comprises of the alert, scheduler and the product service (for simplicity). It is used to create/update/delete/get alerts to/from the postgres database. 
 
