@@ -1,0 +1,110 @@
+version: '3.8'
+volumes:
+  postgres_data:
+  analytics_postgres_data:    
+
+services:
+  json-server:
+    build: ./json-server
+    container_name: test-json-server
+    ports:
+      - '3000:3000'
+    volumes: 
+      - ./json-server/db1.json:/data/db.json
+    command: json-server --watch db.json --host 0.0.0.0
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    ports:
+      - 1025:1025
+      - 8025:8025
+
+  ebay-event-mocker-service:
+    build: ./ebay-events-mocker
+    environment:
+      - MOCKER_URL=http://json-server:3000
+    volumes:
+      - ./ebay-events-mocker/:/opt/api/ebay-events-mocker/
+    ports:
+      - 5001:5001
+    # command: tail -f /dev/null
+    depends_on:
+      - json-server
+  
+  alert_service:
+    build: ./alert-service
+    environment:
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+      - MOCKER_URL=http://json-server:3000
+      - EBAY_EVENT_LISTENER_URL=http://ebay-event-mocker-service:5001
+      - DB_URL=postgresql://shore:secret@db/shore
+    volumes:
+      - ./alert-service/:/opt/api/alert-service/
+    ports:
+      - 5000:5000
+    # command: tail -f /dev/null
+    depends_on:
+      - db
+      - redis
+      - json-server
+      - ebay-event-mocker-service
+  
+  analytics_service:
+    build: ./analytics-service
+    environment:
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+      - ALERT_SERVICE_URL=http://alert_service:5000
+      - EBAY_EVENT_LISTENER_URL=http://ebay-event-mocker-service:5001
+      - DB_URL=postgresql://shore_analytics:secret@analytics-db/shore_analytics
+    volumes:
+      - ./analytics-service/:/opt/api/analytics-service/
+    ports:
+      - 5002:5002
+    # command: tail -f /dev/null
+    depends_on:
+      - analytics-db
+      - redis
+      - json-server
+      - ebay-event-mocker-service
+      - alert_service
+  
+  db:
+    build:
+      context: ./alert-db
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/shore/data
+  
+  analytics-db:
+    build:
+      context: ./analytics-db
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5433:5432
+    volumes:
+      - analytics_postgres_data:/var/lib/shore/analytics-data
+
+  email_sender_worker:
+    build: './email-service'
+    environment:
+      - EMAIL_USER=support@alerts.com
+      - EMAIL_PASSWORD=secret
+      - APP_URL=http://alert_service:5000/alert
+      - API_KEY=email_secret
+    depends_on:
+      - redis
+      - alert_service
+      - mailhog
+    # command: tail -f /dev/null
+
+  redis:
+    image: 'redis:4-alpine'
+    ports:
+      - '6379:6379'

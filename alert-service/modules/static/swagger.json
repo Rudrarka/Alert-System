@@ -1,0 +1,328 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "ebay alert system",
+        "version": "1.0.0",
+        "title": "ebay alert system",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Ebay Alert System",
+            "description": "Alert System"
+        },
+        {
+            "name": "ETL ",
+            "description": "ETL"
+        }
+    ],
+    "paths": {
+        "/alert/": {
+            "get": {
+                "tags": [
+                    "Alert System"
+                ],
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "required": true,
+                        "description": "Email of the user",
+                        "type": "string"
+                    }
+                ],
+                "summary": "Returns alerts of a user.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alerts"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create an alert",
+                "tags": [
+                    "Alert System"
+                ],
+                "requestBody": {
+                    "description": "Alert details. Interval in minutes.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/alert"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alertResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    }
+                }
+            }
+        },
+        "/alert/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "description": "ID of the alert that we want to match",
+                    "type": "string"
+                }
+            ],
+            "patch": {
+                "summary": "edit an alert by ID",
+                "tags": [
+                    "Alert System"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "description": "Alert id",
+                        "schema": {
+                            "$ref": "#/components/schemas/id"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Alert Object",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/alert"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alertResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Bad post data."
+                    },
+                    "404": {
+                        "description": "Failed. Alert not found."
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete Book Request by ID",
+                "tags": [
+                    "Alert System"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "description": "Alert Id",
+                        "schema": {
+                            "$ref": "#/components/schemas/id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/alertDeleteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Failed. Misunderstood Request."
+                    },
+                    "404": {
+                        "description": "Failed. Alert not found."
+                    }
+                }
+            }
+        },
+        "/etl/packets": {
+            "get": {
+                "tags": [
+                    "ETL"
+                ],
+                "summary": "Returns ETL packets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/etl_packets"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "id": {
+                "description": "UUUID",
+                "type": "string",
+                "format": "uuid"
+            },
+            "alert": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "interval": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "alertDeleteResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "format": "string"
+                    }
+                }
+            },
+            "alertResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/id"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "interval": {
+                        "type": "integer"
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "alerts": {
+                "type": "object",
+                "properties": {
+                    "alerts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/alertResponse"
+                        }
+                    }
+                }
+            },
+            "packet": {
+                "type": "object",
+                "properties": {
+                    "alert_id": {
+                        "$ref": "#/components/schemas/id"
+                    },
+                    "user_id": {
+                        "$ref": "#/components/schemas/id"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "products": {
+                        "type": "object",
+                        "properties": {
+                            "price": {
+                                "type": "number",
+                                "format": "double"
+                            },
+                            "product_id": {
+                                "$ref": "#/components/schemas/id"
+                            },
+                            "keywords": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "etl_packets": {
+                "type": "object",
+                "properties": {
+                    "res": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/packet"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
