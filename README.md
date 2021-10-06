@@ -21,7 +21,10 @@ Refer to https://docs.docker.com/get-docker/ to install docker
     cd Alert-System
     docker-compose up -d --build
     ```
-
+* Run the following command for taking down the environment:
+   ```bash
+    docker-compose down -v
+   ```
 
 Alert service Runs on **localhost:5000**
 
